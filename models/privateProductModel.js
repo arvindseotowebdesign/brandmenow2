@@ -42,10 +42,10 @@ const privateProductSchema = new mongoose.Schema(
         variations: {
             type: Object,
         },
-        // store: [{
-        //     type: mongoose.Schema.Types.ObjectId,
-        //     ref: 'Privatestore'
-        // }], 
+        store: [{
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Privatestore'
+        }], 
     },
     { timestamps: true }
 );
