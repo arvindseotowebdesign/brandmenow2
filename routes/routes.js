@@ -32,6 +32,7 @@ router.get('/admin/category/:parentId', GetAllCategoriesByParentIdController);
 router.get('/all-category', UsergetAllCategories);
 router.get('/all-product', UsergetAllProducts);
 router.get('/all-products', UsergetAllProducts);
+router.post('/contact-enquire/', contactEnquire);
 
 router.get('/all-privateproduct', UsergetAllPrivateProducts);
 router.get('/admin/all-category-fillter', getAllcategoryFillAdmin);
