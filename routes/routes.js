@@ -7,7 +7,7 @@ import {
 import {
     AddCart, UpdateCart, getCart, userTokenController, userBlogsController, Userlogin, SignupUser, getAllBlogsController, createBlogController,
     updateBlogController, deleteBlogController, getBlogIdController, CreateChatController, findUserschatController, findchatController
-    ,contactEnquire, UsergetAllHomeProducts, getHomeLayoutData, SendOTP, ordercancel, ordersucess, SignupLoginUser, LoginUserWithPass, LoginUserWithOTP, SignupNewUser, getCollectionProductIdUser, UsergetAllPrivateProducts, UsergetAllCategories, UsergetAllProducts, getAllAttributeUser, getHomeData, getProductIdUser, updateUserController, createOrderController, updateUserAndCreateOrderController, userOrdersController
+    , AuthUserByID, contactEnquire, UsergetAllHomeProducts, getHomeLayoutData, SendOTP, ordercancel, ordersucess, SignupLoginUser, LoginUserWithPass, LoginUserWithOTP, SignupNewUser, getCollectionProductIdUser, UsergetAllPrivateProducts, UsergetAllCategories, UsergetAllProducts, getAllAttributeUser, getHomeData, getProductIdUser, updateUserController, createOrderController, updateUserAndCreateOrderController, userOrdersController
 } from "../controller/userController.js"
 import authenticateToken from "../middleware/authMiddleware.js";
 import { uploadImage, handleImageUpload } from "../controller/adminController.js";
@@ -33,6 +33,8 @@ router.get('/all-category', UsergetAllCategories);
 router.get('/all-product', UsergetAllProducts);
 router.get('/all-products', UsergetAllProducts);
 router.post('/contact-enquire/', contactEnquire);
+
+
 
 router.get('/all-privateproduct', UsergetAllPrivateProducts);
 router.get('/admin/all-category-fillter', getAllcategoryFillAdmin);
@@ -135,6 +137,7 @@ router.post('/create-chat', CreateChatController);
 router.get('/find-chats/:id', findUserschatController);
 router.get('/find-chat/:firstId/:secondId', findchatController);
 
+router.post('/auth-user/', AuthUserByID);
 
 
 router.post('/send-otp/', SendOTP);
