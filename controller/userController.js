@@ -186,6 +186,8 @@ export const UsergetAllHomeProducts = async (req, res) => {
 }
 
 
+
+
 // get home layout data 
 
 
@@ -844,7 +846,7 @@ export const createOrderController = async (req, res) => {
 export const updateUserAndCreateOrderController = async (req, res) => {
   try {
     const { id } = req.params;
-    const { phone, pincode, userId, country, address, token, items, status, mode, details, totalAmount } = req.body;
+    const { username, state, phone, pincode, userId, country, address, token, items, status, mode, details, totalAmount } = req.body;
 
     // Validation
     if (!status || !mode || !details || !totalAmount) {
@@ -876,7 +878,6 @@ export const updateUserAndCreateOrderController = async (req, res) => {
       quantity: product.quantity
     }));
 
-
     // Create a checkout session with the line items
     const session = await stripeInstance.checkout.sessions.create({
       payment_method_types: ["card"],
@@ -886,12 +887,12 @@ export const updateUserAndCreateOrderController = async (req, res) => {
       cancel_url: "http://localhost:3000/cancel",
     });
 
-    console.log(session.id);
+
 
     // Update user
     const updatedUser = await userModel.findByIdAndUpdate(
       userId,
-      { phone, pincode, country, address },
+      { phone, pincode, country, address, username, state },
       { new: true }
     );
 
@@ -912,7 +913,6 @@ export const updateUserAndCreateOrderController = async (req, res) => {
     await updatedUser.save();
 
     return res.json({ id: session.id });
-
 
   } catch (error) {
     console.error('Error creating checkout session:', error);
@@ -1596,3 +1596,47 @@ export const LoginUserWithPass = async (req, res) => {
 
 }
 
+
+export const AuthUserByID = async (req, res) => {
+
+  try {
+    const { id, token } = req.body;
+
+    const existingUser = await userModel.findById(id);
+
+    if (existingUser) {
+      if (existingUser.token === token) {
+
+        return res.status(200).json({
+          success: true,
+          message: 'login sucesssfully with password',
+          existingUser: {
+            _id: existingUser._id, username: existingUser.username, phone: existingUser.phone, email: existingUser.email,
+            address: existingUser.address, pincode: existingUser.pincode, state: existingUser.state, country: existingUser.country,
+          },
+        });
+
+
+      } else {
+        return res.status(401).send({
+          success: false,
+          message: 'token is not incorrect',
+        });
+      }
+    } else {
+      return res.status(401).send({
+        success: false,
+        message: 'user Not found',
+      });
+    }
+
+  } catch (error) {
+    return res.status(500).send
+      ({
+        message: `error on Auth ${error}`,
+        sucesss: false,
+        error
+      })
+  }
+
+}
