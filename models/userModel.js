@@ -16,6 +16,8 @@ const userSchema = mongoose.Schema({
     type: String,
   }, pincode: {
     type: String,
+  }, state: {
+    type: String,
   },
   country: {
     type: String,
