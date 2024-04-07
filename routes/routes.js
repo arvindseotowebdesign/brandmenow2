@@ -7,7 +7,7 @@ import {
 import {
     AddCart, UpdateCart, getCart, userTokenController, userBlogsController, Userlogin, SignupUser, getAllBlogsController, createBlogController,
     updateBlogController, deleteBlogController, getBlogIdController, CreateChatController, findUserschatController, findchatController
-    , AuthUserByID, contactEnquire, UsergetAllHomeProducts, getHomeLayoutData, SendOTP, ordercancel, ordersucess, SignupLoginUser, LoginUserWithPass, LoginUserWithOTP, SignupNewUser, getCollectionProductIdUser, UsergetAllPrivateProducts, UsergetAllCategories, UsergetAllProducts, getAllAttributeUser, getHomeData, getProductIdUser, updateUserController, createOrderController, updateUserAndCreateOrderController, userOrdersController
+    , getPrivateProductIdUser, AuthUserByID, contactEnquire, UsergetAllHomeProducts, getHomeLayoutData, SendOTP, ordercancel, ordersucess, SignupLoginUser, LoginUserWithPass, LoginUserWithOTP, SignupNewUser, getCollectionProductIdUser, UsergetAllPrivateProducts, UsergetAllCategories, UsergetAllProducts, getAllAttributeUser, getHomeData, getProductIdUser, updateUserController, createOrderController, updateUserAndCreateOrderController, userOrdersController
 } from "../controller/userController.js"
 import authenticateToken from "../middleware/authMiddleware.js";
 import { uploadImage, handleImageUpload } from "../controller/adminController.js";
@@ -157,6 +157,9 @@ router.get('/validatetoken/:id', userTokenController);
 router.get('/user-blogs/:id', userBlogsController);
 
 router.get('/user-product/:id', getProductIdUser);
+
+router.get('/user-private-product/:id', getPrivateProductIdUser);
+
 router.get('/user-private-product/:storeid/:id', getCollectionProductIdUser);
 
 
