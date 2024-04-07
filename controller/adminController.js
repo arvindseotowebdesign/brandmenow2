@@ -1558,7 +1558,7 @@ export const AddAdminPrivateProductController = async (req, res) => {
         // Create a new category with the specified parent
         const privateProduct = new privateProductModel({
             title, description, pImage, images, slug,
-            metaDescription, metaTitle, metaKeywords, salePrice, regularPrice, Status, store, variations
+            metaDescription, metaTitle, metaKeywords, salePrice, regularPrice, Status, variations
         });
 
         await privateProduct.save();
