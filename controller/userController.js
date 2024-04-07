@@ -646,7 +646,7 @@ export const UsergetAllProducts = async (req, res) => {
 export const UsergetAllPrivateProducts = async (req, res) => {
 
   try {
-    const products = await productModel.find({});
+    const products = await privateProductModel.find({});
 
     if (!products) {
       return res.status(200).send
@@ -767,6 +767,33 @@ export const getProductIdUser = async (req, res) => {
   }
 }
 
+
+export const getPrivateProductIdUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const Product = await privateProductModel.findById(id);
+    if (!Product) {
+      return res.status(200).send
+        ({
+          message: 'product Not Found By Id',
+          success: false,
+        });
+    }
+    return res.status(200).json({
+      message: 'fetch Single product!',
+      success: true,
+      Product,
+    });
+
+  }
+  catch (error) {
+    return res.status(400).json({
+      message: `Error while get product: ${error}`,
+      success: false,
+      error,
+    });
+  }
+}
 
 
 export const getCollectionProductIdUser = async (req, res) => {
