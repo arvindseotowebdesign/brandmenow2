@@ -2,12 +2,12 @@ import express from "express";
 import {
     SignupAdmin, Adminlogin, getAllGalleryController, deleteGalleryController, AddAdminBlogController, AdmindeleteBlogController, AddAdminCategoryController, GetAllCategoriesByParentIdController
     , AdmingetAllCategories, AddAdminProduct, getAllcategoryFillAdmin, updateCategoryAdmin, getCategoryIdAdmin, deleteCategoryAdmin, getAllProductFillAdmin, updateProductAdmin, getProductIdAdmin, deleteProductAdmin,
-    editHomeLayoutData, getAllOrderAdmin, exportAllProAdmin, importAllProAdmin, AdmindeleteOrderController, getAllUserAdmin, GetAllCategoriesByuserController, editUserAdmin, getUserIdAdmin, AddAdminPrivateProductController, getAllPrivateProductFillAdmin, updatePrivateProductAdmin, getPrivateProductIdAdmin, deletePrivateProductAdmin, AddAdminPrivateStoreController, deletePrivateStoreAdmin, getAllPrivateStoreFillAdmin, updatePrivateStoreAdmin, getPrivateStoreIdAdmin, AddAdminAttributeController, editHomeData, getAllAttributeFillAdmin, updateAttributeAdmin, getAttributeIdAdmin, deleteAttributeAdmin, getAllAttribute, AddAdminTagController, getAllTagFillAdmin, updateTagAdmin, getTagIdAdmin, deleteTagAdmin, getAllTag, handleCusImageUpload
+    editOrderAdmin, editHomeLayoutData, getAllOrderAdmin, exportAllProAdmin, importAllProAdmin, AdmindeleteOrderController, getAllUserAdmin, GetAllCategoriesByuserController, editUserAdmin, getUserIdAdmin, AddAdminPrivateProductController, getAllPrivateProductFillAdmin, updatePrivateProductAdmin, getPrivateProductIdAdmin, deletePrivateProductAdmin, AddAdminPrivateStoreController, deletePrivateStoreAdmin, getAllPrivateStoreFillAdmin, updatePrivateStoreAdmin, getPrivateStoreIdAdmin, AddAdminAttributeController, editHomeData, getAllAttributeFillAdmin, updateAttributeAdmin, getAttributeIdAdmin, deleteAttributeAdmin, getAllAttribute, AddAdminTagController, getAllTagFillAdmin, updateTagAdmin, getTagIdAdmin, deleteTagAdmin, getAllTag, handleCusImageUpload
 } from "../controller/adminController.js";
 import {
     AddCart, UpdateCart, getCart, userTokenController, userBlogsController, Userlogin, SignupUser, getAllBlogsController, createBlogController,
     updateBlogController, deleteBlogController, getBlogIdController, CreateChatController, findUserschatController, findchatController
-    , getPrivateProductIdUser, AuthUserByID, contactEnquire, UsergetAllHomeProducts, getHomeLayoutData, SendOTP, ordercancel, ordersucess, SignupLoginUser, LoginUserWithPass, LoginUserWithOTP, SignupNewUser, getCollectionProductIdUser, UsergetAllPrivateProducts, UsergetAllCategories, UsergetAllProducts, getAllAttributeUser, getHomeData, getProductIdUser, updateUserController, createOrderController, updateUserAndCreateOrderController, userOrdersController
+    , updateProfileUser, cancelOrderUser, userOrdersViewController, getPrivateProductIdUser, AuthUserByID, contactEnquire, UsergetAllHomeProducts, getHomeLayoutData, SendOTP, ordercancel, ordersucess, SignupLoginUser, LoginUserWithPass, LoginUserWithOTP, SignupNewUser, getCollectionProductIdUser, UsergetAllPrivateProducts, UsergetAllCategories, UsergetAllProducts, getAllAttributeUser, getHomeData, getProductIdUser, updateUserController, createOrderController, updateUserAndCreateOrderController, userOrdersController
 } from "../controller/userController.js"
 import authenticateToken from "../middleware/authMiddleware.js";
 import { uploadImage, handleImageUpload } from "../controller/adminController.js";
@@ -34,6 +34,7 @@ router.get('/all-product', UsergetAllProducts);
 router.get('/all-products', UsergetAllProducts);
 router.post('/contact-enquire/', contactEnquire);
 
+router.put('/cancel-order/:id', cancelOrderUser);
 
 
 router.get('/all-privateproduct', UsergetAllPrivateProducts);
@@ -91,6 +92,7 @@ router.delete('/admin/delete-privateproduct/:id', deletePrivateProductAdmin);
 // order Admin
 
 router.get('/admin/all-order', getAllOrderAdmin);
+router.put('/admin/update-order/:id', editOrderAdmin);
 router.delete('/admin/delete-order/:id', AdmindeleteOrderController);
 
 // for export admin
@@ -124,6 +126,9 @@ router.get('/all-blogs', getAllBlogsController);
 router.get('/success', ordersucess);
 
 router.get('/cancel', ordercancel);
+router.put('/update-profile/:id', updateProfileUser);
+
+
 
 router.put('/update-user/:id', updateUserController);
 
@@ -150,6 +155,7 @@ router.post('/login-with-otp/', LoginUserWithOTP);
 
 router.post('/signup-new-user/', SignupNewUser);
 
+router.get('/user-orders-view/:userId/:orderId', userOrdersViewController);
 
 // get blog by user 
 router.get('/validatetoken/:id', userTokenController);
