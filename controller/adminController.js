@@ -11,6 +11,7 @@ import privateProductModel from "../models/privateProductModel.js";
 import userModel from "../models/userModel.js";
 import orderModel from "../models/orderModel.js";
 import homeLayoutModel from "../models/homeLayoutModel.js";
+import nodemailer from 'nodemailer';
 
 // image function 
 
@@ -1539,6 +1540,140 @@ export const deletePrivateStoreAdmin = async (req, res) => {
 
 
 // for private product 
+
+
+export const editOrderAdmin = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { status } = req.body;
+
+        const order = await orderModel.findById(id).populate('userId'); // Fetch order details including user
+
+        if (!order) {
+            return res.status(404).json({
+                message: "Order not found",
+                success: false,
+            });
+        }
+
+        const user = order.userId[0]; // Assuming there's only one user associated with the order
+
+        const { email, username, _id } = user; // Extract user email
+
+        let updateFields = {
+            status,
+        };
+
+        const updatedOrder = await orderModel.findByIdAndUpdate(id, updateFields, {
+            new: true,
+        });
+
+        // Configure nodemailer transporter
+        const transporter = nodemailer.createTransport({
+            // SMTP configuration
+            host: process.env.MAIL_HOST, // Update with your SMTP host
+            port: process.env.MAIL_PORT, // Update with your SMTP port
+            secure: process.env.MAIL_ENCRYPTION, // Set to true if using SSL/TLS
+            auth: {
+                user: process.env.MAIL_USERNAME, // Update with your email address
+                pass: process.env.MAIL_PASSWORD, // Update with your email password
+            }
+        });
+
+        // Email message
+        const mailOptions = {
+            from: process.env.MAIL_FROM_ADDRESS, // Update with your email address
+            to: email, // Use the extracted email here
+            subject: `brandmenow.co.uk Order ${status === '0' ? 'cancel' :
+                status === '1' ? 'Placed' :
+                    status === '2' ? 'Accepted' :
+                        status === '3' ? 'Packed' :
+                            status === '4' ? 'Shipped' :
+                                status === '5' ? 'Delivered' :
+                                    'Unknown'
+                }`,
+            html: `
+            <div class="bg-light w-100 h-100" style="background-color:#f8f9fa!important;width: 90%;font-family:sans-serif;padding:20px;border-radius:10px;padding: 100px 0px;margin: auto;">
+       <div class="modal d-block" style="
+          width: 500px;
+          background: white;
+          padding: 20px;
+          margin: auto;
+          border: 2px solid #8080802e;
+          border-radius: 10px;
+      ">
+        <div class="modal-dialog">
+          <div class="modal-content" style="
+          text-align: center;
+      ">
+            <div class="modal-header">
+      <h1 style="color:black;"> Brand Me Now <h1>
+            </div>
+            <div class="modal-body text-center">
+              <h5 style="
+          margin: 0px;
+          margin-top: 14px;
+          font-size: 20px;color:black;
+      "> Order Id : #${order._id} </h5>
+             <p style="color:black;" >Hey ${username},</p>
+            <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 24 24" fill="none" stroke="#47ca00" stroke-width="2" stroke-linecap="square" stroke-linejoin="arcs"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+             <h2 style="color:black;"> Your Order Is ${status === '1' ? 'Placed' :
+                    status === '2' ? 'Accepted' :
+                        status === '3' ? 'Packed' :
+                            status === '4' ? 'Shipped' :
+                                status === '5' ? 'Delivered' :
+                                    'Unknown'
+                }! </h2>
+           
+             <p style="color:black;" > We'll send you a shipping confirmation email
+      as soon as your order ${status === '1' ? 'Placed' :
+                    status === '2' ? 'Accepted' :
+                        status === '3' ? 'Packed' :
+                            status === '4' ? 'Shipped' :
+                                status === '5' ? 'Delivered' :
+                                    'Unknown'
+                }. </p>
+            </div>
+            <div class="modal-footer">
+        
+              <a href="/order/${_id}/${updatedOrder._id}" style="
+          background: green;
+          color: white;
+          padding: 10px;
+          display: block;
+          margin: auto;
+          border-radius: 6px;
+          text-decoration: none;
+      "> Track Order</a>
+            </div>
+          </div>
+        </div>
+      </div> </div>
+            `
+        };
+
+        // Send email
+        transporter.sendMail(mailOptions, (error, info) => {
+            if (error) {
+                console.error(error);
+                res.status(500).send('Failed to send email');
+            } else {
+                return res.status(200).json({
+                    message: "Order Updated!",
+                    success: true,
+                });
+            }
+        });
+
+    } catch (error) {
+        return res.status(400).json({
+            message: `Error while updating Rating: ${error}`,
+            success: false,
+            error,
+        });
+    }
+};
+
 
 
 export const AddAdminPrivateProductController = async (req, res) => {
