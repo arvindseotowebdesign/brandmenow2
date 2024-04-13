@@ -35,7 +35,12 @@ const orderSchema = mongoose.Schema({
   PaymentId: {
     type: String,
 
-  }
+  }, reason: {
+    type: String,
+  },
+  comment: {
+    type: String,
+  },
 },
   { timestamps: true }
 );
