@@ -767,6 +767,44 @@ export const getProductIdUser = async (req, res) => {
   }
 }
 
+export const userOrdersViewController = async (req, res) => {
+  try {
+    const { userId, orderId } = req.params;
+
+
+    // Find the user by ID and populate their orders
+    const userOrder = await userModel.findById(userId)
+      .populate({
+        path: 'orders',
+        match: { _id: orderId } // Match the order ID
+      });
+
+    // If user or order not found, return appropriate response
+    if (!userOrder || !userOrder.orders.length) {
+      return res.status(404).json({
+        message: 'Order Not Found By user or Order ID',
+        success: false,
+      });
+    }
+
+    // If user order found, return success response with the single order
+    return res.status(200).json({
+      message: 'Single Order Found By user ID and Order ID',
+      success: true,
+      userOrder: userOrder.orders[0], // Assuming there's only one order per user
+    });
+  } catch (error) {
+    // If any error occurs during the process, log it and return error response
+    console.log(error);
+    return res.status(400).json({
+      success: false,
+      message: "Error while getting order",
+      error,
+    });
+  }
+}
+
+
 
 export const getPrivateProductIdUser = async (req, res) => {
   try {
@@ -825,6 +863,158 @@ export const getCollectionProductIdUser = async (req, res) => {
 };
 
 
+
+async function sendOrderConfirmationEmail(email, username, userId, newOrder) {
+  try {
+    // Configure nodemailer transporter
+    const transporter = nodemailer.createTransport({
+      // SMTP configuration
+      host: process.env.MAIL_HOST, // Update with your SMTP host
+      port: process.env.MAIL_PORT, // Update with your SMTP port
+      secure: process.env.MAIL_ENCRYPTION, // Set to true if using SSL/TLS
+      auth: {
+        user: process.env.MAIL_USERNAME, // Update with your email address
+        pass: process.env.MAIL_PASSWORD, // Update with your email password
+      }
+    });
+
+    // Email message
+    const mailOptions = {
+      from: process.env.MAIL_FROM_ADDRESS, // Update with your email address
+      to: email, // Update with your email address
+      cc: process.env.MAIL_FROM_ADDRESS,
+      subject: 'www.brandmenow.co.uk Order Confirmation',
+      html: `  <table style="margin:50px auto 10px;background-color:white;border: 2px solid #858585;padding:50px;-webkit-border-radius:3px;-moz-border-radius:3px;border-radius:3px;-webkit-box-shadow:0 1px 3px rgba(0,0,0,.12),0 1px 2px rgba(0,0,0,.24);-moz-box-shadow:0 1px 3px rgba(0,0,0,.12),0 1px 2px rgba(0,0,0,.24);box-shadow:0 1px 3px rgba(0,0,0,.12),0 1px 2px rgba(0,0,0,.24);     font-family: sans-serif; border-top: solid 10px #ff8800;">
+    <thead>
+      <tr> 
+      <th style="text-align:left;"> 
+      <img width="200" src="https://brandmenow.co.uk/cdn/shop/files/Brand_Me_Now_web_logo_1_360x.png" />
+ </th>
+        <th style="text-align:right;font-weight:400;"> ${new Date(newOrder.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })} </th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td style="height:35px;"></td>
+      </tr>
+      <tr>
+        <td colspan="2" style="border: solid 1px #ddd; padding:10px 20px;">
+          <p style="font-size:14px;margin:0 0 6px 0;"><span style="font-weight:bold;display:inline-block;min-width:150px">Order status</span><b style="color:green;font-weight:normal;margin:0">Placed</b></p>
+          <p style="font-size:14px;margin:0 0 6px 0;"><span style="font-weight:bold;display:inline-block;min-width:146px">Order ID</span> ${newOrder._id}</p>
+          <p style="font-size:14px;margin:0 0 0 0;"><span style="font-weight:bold;display:inline-block;min-width:146px">Order amount</span> Rs. ${newOrder.totalAmount}</p>
+          <p style="font-size:14px;margin:0 0 0 0;"><span style="font-weight:bold;display:inline-block;min-width:146px">Payment Mode</span> ${newOrder.mode}</p>
+        </td>
+      </tr>
+      <tr>
+        <td style="height:35px;"></td>
+      </tr>
+      <tr>
+        <td  style="width:50%;padding:20px;vertical-align:top">
+          <p style="margin:0 0 10px 0;padding:0;font-size:14px;"><span style="display:block;font-weight:bold;font-size:13px">Name</span> ${newOrder.details[0].username} </p>
+          <p style="margin:0 0 10px 0;padding:0;font-size:14px;"><span style="display:block;font-weight:bold;font-size:13px;">Email</span>  ${newOrder.details[0].email}  </p>
+      
+          
+        </td>
+        <td style="width:50%;padding:20px;vertical-align:top">
+            <p style="margin:0 0 10px 0;padding:0;font-size:14px;"><span style="display:block;font-weight:bold;font-size:13px;">Phone</span> +91-${newOrder.details[0].phone}</p>
+          <p style="margin:0 0 10px 0;padding:0;font-size:14px;"><span style="display:block;font-weight:bold;font-size:13px;">Address</span> ${newOrder.details[0].address} </p>
+           
+          
+        </td>
+      </tr>
+      
+      <tr>
+<td colspan="2" > 
+
+<table class="table table-borderless" style="border-collapse: collapse; width: 100%;">
+    <tbody>
+    <tr>
+        <td  style="padding: 10px;font-weight:bold;">Items</td>
+
+        <td   style="padding: 10px;font-weight:bold;">Quantity</td>
+             <td  style="padding: 10px;text-align:right;font-weight:bold;">Price</td>
+      </tr>
+
+      ${newOrder.items.map((Pro) => `
+        <tr>
+          <td  style="padding: .75rem; vertical-align: top; border-top: 1px solid #dee2e6;" >
+            <div className="d-flex mb-2">
+              <div className="flex-shrink-0">
+                <img
+                  src="${Pro.image}"
+                  alt=""
+                  width="35"
+                  className="img-fluid"
+                />
+              </div>
+              <div className="flex-lg-grow-1 ms-3">
+                <h6 className="small mb-0">
+                  <a href="#" style="font-size:10px;">
+                    ${Pro.title}  
+                  </a>
+                </h6>
+
+              </div>
+            </div>
+          </td>
+
+          <td  style="padding: .75rem; vertical-align: top; border-top: 1px solid #dee2e6;"> ${Pro.quantity} </td>
+
+          <td  style="padding: .75rem; vertical-align: top; border-top: 1px solid #dee2e6;text-align: right;" >₹ ${Pro.price}</td>
+        </tr>
+        `).join('')}
+
+    </tbody>
+    <tfoot>
+     
+        <tr class="fw-bold">
+            <td colspan="2" style="padding: .75rem; vertical-align: top; border-top: 1px solid #dee2e6;">TOTAL</td>
+            <td colspan="2"  class="text-end" style="padding: .75rem; vertical-align: top; border-top: 1px solid #dee2e6;text-align: right;">₹${newOrder.totalAmount}</td>
+        </tr>
+    </tfoot>
+</table>
+</td>
+
+      </tr>
+    </tbody>
+    <tfooter>
+      <tr>
+        <td colspan="2" style="font-size:14px;padding:50px 15px 0 15px;">
+        
+        
+          <strong style="display:block;margin:0 0 10px 0;">Regards</strong> 
+          
+          <address><strong class="mb-2"> BRAND ME NOW </strong><br> 
+          <b title="Phone" class="mb-2">Address:</b>Lindon House,
+          <br>
+          Heeley Road, 
+          <br>
+          Birmingham B29 6EN
+          
+          <br>
+          <b title="Phone" class="mb-2">Email:</b> info@brandmenow.co.uk <br>
+          <b title="Phone" class="mb-2">Web:</b>www.brandmenow.co.uk <br></address>
+         
+        </td>
+      </tr>
+    </tfooter>
+  </table> `,
+      headers: {
+        'Content-Type': 'text/html; charset=utf-8',
+        'Content-Transfer-Encoding': 'quoted-printable'
+      }
+    };
+
+    // Send email
+    const info = await transporter.sendMail(mailOptions);
+    console.log('Email sent: ' + info.response);
+  } catch (error) {
+    console.error('Failed to send email:', error);
+    throw new Error('Failed to send email');
+  }
+}
+
+
 export const createOrderController = async (req, res) => {
 
 
@@ -854,6 +1044,9 @@ export const createOrderController = async (req, res) => {
     await exisitingUser.save({ session });
     await session.commitTransaction();
     await newOrder.save();
+
+    await sendOrderConfirmationEmail(email, username, userId, newOrder);
+
     return res.status(201).send({
       success: true,
       message: "Order Sucessfully!",
@@ -873,7 +1066,7 @@ export const createOrderController = async (req, res) => {
 export const updateUserAndCreateOrderController = async (req, res) => {
   try {
     const { id } = req.params;
-    const { username, state, phone, pincode, userId, country, address, token, items, status, mode, details, totalAmount } = req.body;
+    const { email, username, state, phone, pincode, userId, country, address, token, items, status, mode, details, totalAmount } = req.body;
 
     // Validation
     if (!status || !mode || !details || !totalAmount) {
@@ -934,10 +1127,13 @@ export const updateUserAndCreateOrderController = async (req, res) => {
     const newOrder = new orderModel({ items, status, mode, details, totalAmount, orderStatus: '0', transactionId: '', PaymentId: session.id, userId });
 
     await newOrder.save();
+    await sendOrderConfirmationEmail(email, username, userId, newOrder);
 
     // Associate the order with the user
     updatedUser.orders.push(newOrder);
     await updatedUser.save();
+
+
 
     return res.json({ id: session.id });
 
@@ -998,6 +1194,94 @@ export const ordercancel = async (req, res) => {
   } catch (error) {
     console.error('Error updating order status:', error);
     res.redirect('/error-page');
+  }
+};
+
+export const updateProfileUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { username, phone, state, email, pincode, address, country, password } = req.body;
+
+    if (!password) {
+
+
+      if (!username || !email || !pincode || !address || !state) {
+        return res.status(400).json({
+          success: false,
+          message: 'Please fill all fields',
+        });
+      }
+
+      let updateFields = {
+        username, email, pincode, address, state, country, phone
+      };
+
+      await userModel.findByIdAndUpdate(id, updateFields, {
+        new: true,
+      });
+
+      return res.status(200).json({
+        message: "Profile Updated!",
+        success: true,
+      });
+    }
+    else {
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      let updateFields = {
+        password: hashedPassword
+      };
+
+      const user = await userModel.findByIdAndUpdate(id, updateFields, {
+        new: true,
+      });
+
+      return res.status(200).json({
+        message: "Password Updated!",
+        success: true,
+      });
+    }
+
+
+  } catch (error) {
+    return res.status(400).json({
+      message: `Error while updating Promo code: ${error}`,
+      success: false,
+      error,
+    });
+  }
+};
+
+
+// for cancel order 
+
+export const cancelOrderUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { comment, reason } = req.body;
+
+    let updateFields = {
+      status: '0',
+      comment,
+      reason,
+    };
+
+    await orderModel.findByIdAndUpdate(id, updateFields, {
+      new: true,
+    });
+
+    return res.status(200).json({
+      message: "Order Cancel!",
+      success: true,
+    });
+
+
+  } catch (error) {
+    return res.status(400).json({
+      message: `Error while updating Rating: ${error}`,
+      success: false,
+      error,
+    });
   }
 };
 
@@ -1375,7 +1659,7 @@ export const SignupLoginUser = async (req, res) => {
     // Generate OTP
     const otp = Math.floor(1000 + Math.random() * 9000);
     // // Send OTP via Phone
-    await sendOTP(email, otp);
+
 
     if (!Gtoken) {
       return res.status(400).json({
@@ -1395,6 +1679,8 @@ export const SignupLoginUser = async (req, res) => {
     const existingUser = await userModel.findOne({ email });
 
     if (existingUser) {
+
+
       if (existingUser.password !== undefined) {
         if (existingUser.status === '0') {
           return res.status(400).json({
@@ -1408,6 +1694,52 @@ export const SignupLoginUser = async (req, res) => {
           password: true,
         });
       } else {
+
+        try {
+          // Configure nodemailer transporter
+          const transporter = nodemailer.createTransport({
+            // SMTP configuration
+            host: process.env.MAIL_HOST, // Update with your SMTP host
+            port: process.env.MAIL_PORT, // Update with your SMTP port
+            secure: process.env.MAIL_ENCRYPTION, // Set to true if using SSL/TLS
+            auth: {
+              user: process.env.MAIL_USERNAME, // Update with your email address
+              pass: process.env.MAIL_PASSWORD,// Update with your email password
+            }
+          });
+
+          // Email message
+          const mailOptions = {
+            from: process.env.MAIL_FROM_ADDRESS, // Update with your email address
+            to: email, // Update with your email address
+            subject: 'Brandnow Email Verification',
+            html: `<h3>OTP: <b>${otp}</b></h3>` // HTML body with OTP in bold
+          };
+
+          // Send email
+          transporter.sendMail(mailOptions, (error, info) => {
+            if (error) {
+              console.log('error sent successfully', error);
+
+              res.status(500).json({
+                success: false,
+                message: 'Error on otp Send',
+                error: error.message,
+              });
+
+            } else {
+              res.status(200).send('OTP sent successfully');
+              console.log('OTP sent successfully');
+
+            }
+          });
+
+        } catch (error) {
+          // Handle errors
+          console.error('Error sending OTP:', error);
+          throw new Error('Failed to send OTP');
+        }
+
         if (existingUser.status === '0') {
           return res.status(400).json({
             success: false,
@@ -1543,13 +1875,54 @@ export const LoginUserWithOTP = async (req, res) => {
         message: 'you can access this page ',
       });
     }
-    // Validation
-    if (!phone) {
-      return res.status(400).json({
-        success: false,
-        message: 'Please fill all fields',
+
+
+    // // Send OTP via Phone
+    try {
+      // Configure nodemailer transporter
+      const transporter = nodemailer.createTransport({
+        // SMTP configuration
+        host: process.env.MAIL_HOST, // Update with your SMTP host
+        port: process.env.MAIL_PORT, // Update with your SMTP port
+        secure: process.env.MAIL_ENCRYPTION, // Set to true if using SSL/TLS
+        auth: {
+          user: process.env.MAIL_USERNAME, // Update with your email address
+          pass: process.env.MAIL_PASSWORD,// Update with your email password
+        }
       });
+
+      // Email message
+      const mailOptions = {
+        from: process.env.MAIL_FROM_ADDRESS, // Update with your email address
+        to: email, // Update with your email address
+        subject: 'Brandnow Email Verification',
+        html: `<h3>OTP: <b>${otp}</b></h3>` // HTML body with OTP in bold
+      };
+
+      // Send email
+      transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          console.log('error sent successfully', error);
+
+          res.status(500).json({
+            success: false,
+            message: 'Error on otp Send',
+            error: error.message,
+          });
+
+        } else {
+          res.status(200).send('OTP sent successfully');
+          console.log('OTP sent successfully');
+
+        }
+      });
+
+    } catch (error) {
+      // Handle errors
+      console.error('Error sending OTP:', error);
+      throw new Error('Failed to send OTP');
     }
+
 
     const existingUser = await userModel.findOne({ email });
 
